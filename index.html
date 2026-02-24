@@ -1,376 +1,472 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  CheckCircle2, 
-  Circle, 
-  MapPin, 
-  Clock, 
-  AlertTriangle, 
-  ChevronRight, 
-  ExternalLink,
-  Castle,
-  CalendarDays
-} from 'lucide-react';
-
-const App = () => {
-  const [activeDay, setActiveDay] = useState('day1');
-  const [visited, setVisited] = useState({});
-
-  // ローカルストレージから進捗を復元
-  useEffect(() => {
-    const saved = localStorage.getItem('castle_rally_progress');
-    if (saved) {
-      try {
-        setVisited(JSON.parse(saved));
-      } catch (e) {
-        console.error("Failed to parse progress", e);
-      }
-    }
-  }, []);
-
-  // 訪問状態の切り替えと保存
-  const toggleVisited = (id) => {
-    const newVisited = { ...visited, [id]: !visited[id] };
-    setVisited(newVisited);
-    localStorage.setItem('castle_rally_progress', JSON.stringify(newVisited));
-  };
-
-  const scheduleData = {
-    day1: {
-      date: "2/24 (火)",
-      title: "備中エリアの山城攻略",
-      note: "※祝日振替日のため資料館は休館。代替スタンプ場所を優先。",
-      castles: [
-        {
-          id: 68,
-          name: "備中松山城",
-          timeSlot: "09:00 - 11:30",
-          description: "日本一高い現存天守。雲海に浮かぶ天空の城。",
-          parking: "https://www.google.com/maps/search/?api=1&query=城見橋公園駐車場",
-          stamp: "https://www.google.com/maps/search/?api=1&query=備中松山城+天守",
-          hours: "9:00 - 16:30",
-          warning: "駐車場からシャトルバス利用。そこから徒歩20分の山道です。"
-        },
-        {
-          id: 171,
-          name: "備中高松城",
-          timeSlot: "12:30 - 14:00",
-          description: "秀吉の水攻め舞台。城主・清水宗治の切腹地。",
-          parking: "https://www.google.com/maps/search/?api=1&query=備中高松城跡駐車場",
-          stamp: "https://www.google.com/maps/search/?api=1&query=備中高松城跡+清鏡庵",
-          hours: "自由（2/24資料館は休館）",
-          warning: "スタンプは隣接売店「清鏡庵」にあります。"
-        },
-        {
-          id: 69,
-          name: "鬼ノ城",
-          timeSlot: "14:30 - 16:30",
-          description: "古代朝鮮式山城。西門と巨大な石垣が見所。",
-          parking: "https://www.google.com/maps/search/?api=1&query=鬼ノ城ビジターセンター",
-          stamp: "https://www.google.com/maps/search/?api=1&query=総社市役所",
-          hours: "自由（2/24ビジターCは休館）",
-          warning: "ビジターC休館。スタンプは総社市役所の守衛室等で提供。"
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日本100名城・続100名城 4日間スタンプラリーナビ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab-button.active { 
+            background-color: #1e3a8a; 
+            color: white; 
+            border-bottom: 4px solid #fbbf24;
         }
-      ]
-    },
-    day2: {
-      date: "2/25 (水)",
-      title: "香川の現存天守と海城",
-      note: "うどん巡りと並行しやすいスケジュール。",
-      castles: [
-        {
-          id: 78,
-          name: "丸亀城",
-          timeSlot: "09:00 - 10:30",
-          description: "日本一高い石垣と現存最小の天守。",
-          parking: "https://www.google.com/maps/search/?api=1&query=丸亀城大手門駐車場",
-          stamp: "https://www.google.com/maps/search/?api=1&query=丸亀城天守",
-          hours: "9:00 - 16:30",
-          warning: "天守までの「見返り坂」は非常に急勾配です。"
-        },
-        {
-          id: 77,
-          name: "高松城",
-          timeSlot: "11:30 - 13:30",
-          description: "日本三大海城。堀に鯛が泳ぐ玉藻公園。",
-          parking: "https://www.google.com/maps/search/?api=1&query=玉藻公園東駐車場",
-          stamp: "https://www.google.com/maps/search/?api=1&query=高松城管理事務所",
-          hours: "8:30 - 17:00",
-          warning: "堀の鯛にエサをあげる「鯛願成就」が名物。"
-        },
-        {
-          id: 177,
-          name: "引田城",
-          timeSlot: "15:00 - 16:30",
-          description: "瀬戸内を見下ろす石垣の山城。",
-          parking: "https://www.google.com/maps/search/?api=1&query=田ノ浦野営場駐車場",
-          stamp: "https://www.google.com/maps/search/?api=1&query=讃州井筒屋敷",
-          hours: "10:00 - 16:00 (井筒屋敷)",
-          warning: "スタンプは井筒屋敷（市街地）、城跡はキャンプ場方面です。"
+        .castle-card.visited {
+            border-left: 10px solid #22c55e;
+            background-color: #f0fdf4;
         }
-      ]
-    },
-    day3: {
-      date: "2/26 (木)",
-      title: "徳島・淡路島の歴史探訪",
-      note: "一宮城と洲本城は山城のため歩きやすい靴で。",
-      castles: [
-        {
-          id: 175,
-          name: "勝瑞城",
-          timeSlot: "09:00 - 10:00",
-          description: "三好氏の本拠地。豪華な居館庭園跡。",
-          parking: "https://www.google.com/maps/search/?api=1&query=勝瑞城館跡駐車場",
-          stamp: "https://www.google.com/maps/search/?api=1&query=勝瑞現場事務所",
-          hours: "9:00 - 17:00",
-          warning: "事務所と城館跡が少し離れています。"
-        },
-        {
-          id: 76,
-          name: "徳島城",
-          timeSlot: "10:30 - 12:30",
-          description: "蜂須賀家の居城。青石の石垣が美しい。",
-          parking: "https://www.google.com/maps/search/?api=1&query=徳島中央公園駐車場",
-          stamp: "https://www.google.com/maps/search/?api=1&query=徳島市立徳島城博物館",
-          hours: "9:30 - 17:00",
-          warning: "博物館内の庭園は必見です。"
-        },
-        {
-          id: 176,
-          name: "一宮城",
-          timeSlot: "14:00 - 15:30",
-          description: "岩盤を削った堀切が見事な山城。",
-          parking: "https://www.google.com/maps/search/?api=1&query=一宮神社駐車場",
-          stamp: "https://www.google.com/maps/search/?api=1&query=一宮城跡登山口",
-          hours: "自由",
-          warning: "スタンプは登山口の郵便受け風BOXにあります。"
-        },
-        {
-          id: 164,
-          name: "洲本城",
-          timeSlot: "17:00 - 18:00",
-          description: "淡路島最大の城。珍しい登り石垣が現存。",
-          parking: "https://www.google.com/maps/search/?api=1&query=洲本城跡駐車場",
-          stamp: "https://www.google.com/maps/search/?api=1&query=淡路文化史料館",
-          hours: "9:00 - 17:00 (史料館)",
-          warning: "先に下の「史料館」でスタンプを押してから山へ登ってください。"
+        .progress-bar-inner {
+            transition: width 0.5s ease-in-out;
         }
-      ]
-    },
-    day4: {
-      date: "2/27 (金)",
-      title: "兵庫横断・岡山ゴール",
-      note: "19:00のレンタカー返却に合わせた最終調整日。",
-      castles: [
-        {
-          id: 58,
-          name: "明石城",
-          timeSlot: "09:00 - 10:15",
-          description: "天守台に立つ2基の三重櫓が現存。",
-          parking: "https://www.google.com/maps/search/?api=1&query=明石公園駐車場",
-          stamp: "https://www.google.com/maps/search/?api=1&query=明石公園サービスセンター",
-          hours: "8:45 - 17:00",
-          warning: "サービスセンターは公園入口近くにあります。"
-        },
-        {
-          id: 59,
-          name: "姫路城",
-          timeSlot: "11:15 - 14:15",
-          description: "世界遺産・国宝。白鷺城と称される白亜の天守。",
-          parking: "https://www.google.com/maps/search/?api=1&query=姫路城大手門駐車場",
-          stamp: "https://www.google.com/maps/search/?api=1&query=姫路城管理事務所",
-          hours: "9:00 - 17:00",
-          warning: "広大なため最低2時間は必要。混雑に注意。"
-        },
-        {
-          id: 60,
-          name: "赤穂城",
-          timeSlot: "15:15 - 16:30",
-          description: "忠臣蔵の舞台。技巧的な石垣と庭園。",
-          parking: "https://www.google.com/maps/search/?api=1&query=赤穂城跡駐車場",
-          stamp: "https://www.google.com/maps/search/?api=1&query=赤穂城跡本丸門",
-          hours: "9:00 - 16:30",
-          warning: "本丸庭園の入場時間に注意。"
-        },
-        {
-          id: 70,
-          name: "岡山城",
-          timeSlot: "17:30 - 18:15",
-          description: "烏城と呼ばれる漆黒の外観。岡山駅至近。",
-          parking: "https://www.google.com/maps/search/?api=1&query=烏城公園駐車場",
-          stamp: "https://www.google.com/maps/search/?api=1&query=岡山城管理事務所",
-          hours: "9:00 - 17:30 (最終入館17:00)",
-          warning: "スタンプは17:00まで。その後ガソリンを入れ19:00返却へ。"
-        }
-      ]
-    }
-  };
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
 
-  const currentDay = scheduleData[activeDay];
-  const totalCastles = 14;
-  const visitedCount = Object.values(visited).filter(v => v).length;
-  const progressPercent = Math.round((visitedCount / totalCastles) * 100);
-
-  return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-900 pb-12">
-      {/* 📊 Global Progress Header */}
-      <div className="bg-indigo-900 text-white p-6 shadow-xl sticky top-0 z-50">
-        <div className="max-w-xl mx-auto">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-xl font-black flex items-center gap-2">
-              <Castle className="text-yellow-400" /> 城巡りスタンプラリー
-            </h1>
-            <div className="text-right">
-              <span className="text-3xl font-bold text-yellow-400">{visitedCount}</span>
-              <span className="text-sm opacity-80"> / {totalCastles}</span>
+    <!-- Header & Progress -->
+    <header class="bg-blue-900 text-white p-5 shadow-lg sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h1 class="text-xl font-bold">🏯 名城スタンプラリー・ナビゲーター</h1>
+                    <p class="text-[10px] text-blue-200 uppercase tracking-widest mt-1">2026.02.24 - 02.27 Plan</p>
+                </div>
+                <div class="text-right">
+                    <span id="visited-count" class="text-2xl font-black text-yellow-400">0</span>
+                    <span class="text-xs ml-1">/ 14 達成</span>
+                </div>
             </div>
-          </div>
-          <div className="bg-indigo-950 rounded-full h-4 overflow-hidden shadow-inner border border-indigo-800">
-            <div 
-              className="bg-yellow-400 h-full transition-all duration-700 ease-out shadow-[0_0_10px_rgba(250,204,21,0.5)]"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-          <p className="text-[10px] mt-2 text-indigo-300 text-center font-bold uppercase tracking-widest">
-            Total Completion: {progressPercent}%
-          </p>
+            <!-- Global Progress Bar -->
+            <div class="w-full bg-blue-950 rounded-full h-2.5 overflow-hidden border border-blue-800">
+                <div id="progress-bar" class="progress-bar-inner bg-yellow-400 h-full w-0"></div>
+            </div>
         </div>
-      </div>
+    </header>
 
-      {/* 📅 Day Selector */}
-      <div className="bg-white border-b sticky top-[116px] z-40 shadow-sm">
-        <div className="max-w-xl mx-auto flex">
-          {Object.keys(scheduleData).map((key) => (
-            <button
-              key={key}
-              onClick={() => setActiveDay(key)}
-              className={`flex-1 py-4 px-1 text-center transition-all border-b-4 font-black text-xs
-                ${activeDay === key 
-                  ? 'border-yellow-400 text-indigo-900 bg-yellow-50' 
-                  : 'border-transparent text-gray-400 hover:bg-gray-50'}`}
-            >
-              <CalendarDays size={14} className="mx-auto mb-1" />
-              {scheduleData[key].date}
-            </button>
-          ))}
+    <!-- Tab Navigation -->
+    <nav class="bg-white border-b sticky top-[108px] z-40 shadow-sm">
+        <div class="max-w-4xl mx-auto flex overflow-x-auto">
+            <button onclick="showDay('day1')" id="btn-day1" class="tab-button active flex-1 py-3 text-center font-bold text-xs border-r min-w-[80px]">1日目<br>2/24(火)</button>
+            <button onclick="showDay('day2')" id="btn-day2" class="tab-button flex-1 py-3 text-center font-bold text-xs border-r min-w-[80px]">2日目<br>2/25(水)</button>
+            <button onclick="showDay('day3')" id="btn-day3" class="tab-button flex-1 py-3 text-center font-bold text-xs border-r min-w-[80px]">3日目<br>2/26(木)</button>
+            <button onclick="showDay('day4')" id="btn-day4" class="tab-button flex-1 py-3 text-center font-bold text-xs min-w-[80px]">4日目<br>2/27(金)</button>
         </div>
-      </div>
+    </nav>
 
-      {/* 🏰 Main List */}
-      <div className="max-w-xl mx-auto p-4 space-y-6 mt-4">
-        <div className="bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-r-xl">
-          <h2 className="text-lg font-black text-indigo-900">{currentDay.title}</h2>
-          <p className="text-xs text-indigo-700 font-medium mt-1">{currentDay.note}</p>
-        </div>
+    <main class="max-w-4xl mx-auto p-4 space-y-8 pb-24 mt-4">
 
-        <div className="space-y-4">
-          {currentDay.castles.map((castle, index) => (
-            <div 
-              key={castle.id}
-              className={`relative overflow-hidden rounded-2xl transition-all border-2 
-                ${visited[castle.id] 
-                  ? 'bg-green-50 border-green-500 shadow-md' 
-                  : 'bg-white border-gray-200 shadow-sm'}`}
-            >
-              {/* Progress Connector (optional visual) */}
-              {index !== currentDay.castles.length - 1 && (
-                <div className="absolute left-[34px] top-[80px] w-0.5 h-full bg-gray-100 -z-10" />
-              )}
+        <!-- DAY 1: 備中エリア (2/24) -->
+        <div id="day1" class="tab-content active space-y-6">
+            <div class="bg-red-50 p-4 rounded-lg border border-red-200 text-red-800 text-xs italic">
+                <strong>【2/24 留意事項】</strong> 祝日振替日で資料館が休館します。スタンプは代替場所を優先してください。
+            </div>
 
-              {/* Card Header */}
-              <div className="flex items-center justify-between p-4 border-b border-gray-100">
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm
-                    ${visited[castle.id] ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
-                    {visited[castle.id] ? <CheckCircle2 size={24} /> : `0${index + 1}`}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Clock size={12} className="text-indigo-500" />
-                      <span className="text-sm font-black text-indigo-900">{castle.timeSlot}</span>
-                    </div>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => toggleVisited(castle.id)}
-                  className={`px-4 py-2 rounded-full text-xs font-black transition-all shadow-sm
-                    ${visited[castle.id] 
-                      ? 'bg-green-600 text-white hover:bg-green-700' 
-                      : 'bg-indigo-600 text-white hover:bg-indigo-700 active:scale-95'}`}
-                >
-                  {visited[castle.id] ? 'スタンプ取得済' : 'スタンプを押す'}
-                </button>
-              </div>
-
-              {/* Card Body */}
-              <div className="p-5">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-xl font-black text-gray-900">{castle.name}</h3>
-                  <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded font-bold uppercase">
-                    ID: {castle.id}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-600 mb-5 leading-relaxed">
-                  {castle.description}
-                </p>
-
-                {/* Maps Buttons */}
-                <div className="grid grid-cols-2 gap-3 mb-5">
-                  <a href={castle.parking} target="_blank" rel="noopener noreferrer"
-                    className="flex flex-col items-center justify-center p-3 rounded-xl bg-gray-50 border border-gray-200 hover:bg-gray-100 transition group">
-                    <MapPin size={20} className="text-red-500 mb-1 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-gray-400 uppercase">Parking</span>
-                    <span className="text-xs font-black text-gray-700 flex items-center gap-1">
-                      Mapを表示 <ExternalLink size={10} />
-                    </span>
-                  </a>
-                  <a href={castle.stamp} target="_blank" rel="noopener noreferrer"
-                    className="flex flex-col items-center justify-center p-3 rounded-xl bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 transition group">
-                    <Navigation size={20} className="text-indigo-600 mb-1 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-indigo-400 uppercase">Stamp</span>
-                    <span className="text-xs font-black text-indigo-900 flex items-center gap-1">
-                      場所へナビ <ExternalLink size={10} />
-                    </span>
-                  </a>
-                </div>
-
-                {/* Info List */}
-                <div className="space-y-3 bg-gray-50 p-4 rounded-xl border border-gray-100">
-                  <div className="flex items-center gap-2 text-xs">
-                    <Clock size={14} className="text-gray-400" />
-                    <span className="font-bold text-gray-500">営業時間:</span>
-                    <span className="font-bold text-gray-900">{castle.hours}</span>
-                  </div>
-                  <div className="flex items-start gap-2 text-xs">
-                    <AlertTriangle size={14} className="text-amber-500 mt-0.5 shrink-0" />
+            <!-- Castle Template -->
+            <section id="castle-68" class="castle-card bg-white rounded-lg shadow-md p-5 border-l-[5px] border-blue-900 transition-all">
+                <div class="flex justify-between items-start mb-3">
                     <div>
-                      <span className="font-bold text-amber-600 block mb-0.5">留意点:</span>
-                      <span className="text-gray-700 font-medium leading-normal">{castle.warning}</span>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="bg-blue-900 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">09:00 - 11:30</span>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">ID: 68</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-blue-900">備中松山城</h2>
                     </div>
-                  </div>
+                    <label class="flex flex-col items-center">
+                        <input type="checkbox" onchange="toggleVisited(68)" class="w-6 h-6 rounded-md border-gray-300 text-green-600 focus:ring-green-500">
+                        <span class="text-[10px] mt-1 text-gray-400 font-bold">STAMP</span>
+                    </label>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+                <p class="text-xs leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 標高430mの臥牛山頂に位置する、現存12天守の中で唯一の山城。秋から冬の雲海に浮かぶ姿は「天空の城」と称されます。</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+                    <a href="https://www.google.com/maps/search/?api=1&query=城見橋公園駐車場" target="_blank" class="flex items-center justify-center gap-2 bg-gray-50 p-2 rounded text-[11px] font-bold border hover:bg-gray-100 transition">🅿️ 駐車場</a>
+                    <a href="https://www.google.com/maps/search/?api=1&query=備中松山城+天守" target="_blank" class="flex items-center justify-center gap-2 bg-gray-50 p-2 rounded text-[11px] font-bold border hover:bg-gray-100 transition">📍 スタンプ場所</a>
+                </div>
+                <div class="text-[11px] space-y-1">
+                    <p>🕒 <strong>営業時間：</strong> 9:00 - 16:30 (最終入館16:00)</p>
+                    <p class="text-indigo-700">💡 <strong>留意点：</strong> 駐車場からシャトルバス利用、その後徒歩20分以上の急坂を登ります。動きやすい服装必須。</p>
+                </div>
+            </section>
 
-      <footer className="max-w-xl mx-auto px-4 mt-8 text-center">
-        <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-          <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">Travel Status</p>
-          <div className="flex justify-between items-center text-xs font-black text-gray-600">
-            <span>START: 岡山駅</span>
-            <ChevronRight size={14} />
-            <span className="text-indigo-600">現在地付近を攻略中</span>
-            <ChevronRight size={14} />
-            <span>GOAL: 岡山駅</span>
-          </div>
-        </div>
-        <p className="text-[10px] text-gray-400 mt-6 mb-12">
-          © 2026 Castle Rally Navigator • Progress saved automatically.
-        </p>
-      </footer>
-    </div>
-  );
-};
+            <section id="castle-171" class="castle-card bg-white rounded-lg shadow-md p-5 border-l-[5px] border-blue-900 transition-all">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="bg-blue-900 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">12:30 - 14:00</span>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">ID: 171</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-blue-900">備中高松城</h2>
+                    </div>
+                    <label class="flex flex-col items-center">
+                        <input type="checkbox" onchange="toggleVisited(171)" class="w-6 h-6 rounded-md">
+                        <span class="text-[10px] mt-1 text-gray-400 font-bold">STAMP</span>
+                    </label>
+                </div>
+                <p class="text-xs leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 秀吉の「水攻め」で名高い城。城主・清水宗治が兵を救うため切腹した潔い最期で知られています。</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+                    <a href="https://www.google.com/maps/search/?api=1&query=備中高松城跡駐車場" target="_blank" class="flex items-center justify-center gap-2 bg-gray-50 p-2 rounded text-[11px] border">🅿️ 駐車場</a>
+                    <a href="https://www.google.com/maps/search/?api=1&query=備中高松城跡+清鏡庵" target="_blank" class="flex items-center justify-center gap-2 bg-red-50 p-2 rounded text-[11px] border border-red-200 font-bold text-red-700">📍 スタンプ(清鏡庵)</a>
+                </div>
+                <div class="text-[11px] space-y-1">
+                    <p>🕒 <strong>営業時間：</strong> 城跡自由 (売店 10:00 - 16:00)</p>
+                    <p class="text-red-700 font-bold">💡 留意点：2/24は資料館休館のため、スタンプは隣接の売店「清鏡庵」で提供。</p>
+                </div>
+            </section>
 
-export default App;
+            <section id="castle-69" class="castle-card bg-white rounded-lg shadow-md p-5 border-l-[5px] border-blue-900 transition-all">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="bg-blue-900 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">14:30 - 16:30</span>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">ID: 69</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-blue-900">鬼ノ城</h2>
+                    </div>
+                    <label class="flex flex-col items-center">
+                        <input type="checkbox" onchange="toggleVisited(69)" class="w-6 h-6 rounded-md">
+                        <span class="text-[10px] mt-1 text-gray-400 font-bold">STAMP</span>
+                    </label>
+                </div>
+                <p class="text-xs leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 7世紀頃の古代朝鮮式山城。桃太郎伝説のモデルとされる温羅の居城と伝わります。復元された西門が見所。</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+                    <a href="https://www.google.com/maps/search/?api=1&query=鬼ノ城ビジターセンター" target="_blank" class="flex items-center justify-center gap-2 bg-gray-50 p-2 rounded text-[11px] border">🅿️ 駐車場</a>
+                    <a href="https://www.google.com/maps/search/?api=1&query=総社市役所" target="_blank" class="flex items-center justify-center gap-2 bg-red-50 p-2 rounded text-[11px] border border-red-200 font-bold text-red-700">📍 スタンプ(総社市役所)</a>
+                </div>
+                <div class="text-[11px] space-y-1">
+                    <p>🕒 <strong>営業時間：</strong> 城跡自由</p>
+                    <p class="text-red-700 font-bold">💡 留意点：2/24はビジターC休館。スタンプは総社市役所（守衛室等）で確保が必要です。</p>
+                </div>
+            </section>
+        </div>
+
+        <!-- DAY 2: 香川エリア (2/25) -->
+        <div id="day2" class="tab-content space-y-6">
+            <section id="castle-78" class="castle-card bg-white rounded-lg shadow-md p-5 border-l-[5px] border-blue-900 transition-all">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="bg-blue-900 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">09:00 - 10:30</span>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">ID: 78</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-blue-900">丸亀城</h2>
+                    </div>
+                    <label class="flex flex-col items-center">
+                        <input type="checkbox" onchange="toggleVisited(78)" class="w-6 h-6 rounded-md">
+                        <span class="text-[10px] mt-1 text-gray-400 font-bold">STAMP</span>
+                    </label>
+                </div>
+                <p class="text-xs leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 日本一高いといわれる石垣（総高60m）を持つ城。全国で最も小規模ながら、扇の勾配の石垣と現存天守の対比が美しい。</p>
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <a href="https://www.google.com/maps/search/?api=1&query=丸亀城大手門駐車場" target="_blank" class="flex items-center justify-center gap-2 bg-gray-50 p-2 rounded text-[11px] border">🅿️ 駐車場</a>
+                    <a href="https://www.google.com/maps/search/?api=1&query=丸亀城天守" target="_blank" class="flex items-center justify-center gap-2 bg-gray-50 p-2 rounded text-[11px] border">📍 スタンプ場所</a>
+                </div>
+                <div class="text-[11px] space-y-1 text-indigo-700">
+                    <p>🕒 <strong>営業時間：</strong> 9:00 - 16:30 (天守入館)</p>
+                    <p>💡 留意点：駐車場から天守まではかなりの急坂「見返り坂」を登ります。</p>
+                </div>
+            </section>
+
+            <section id="castle-77" class="castle-card bg-white rounded-lg shadow-md p-5 border-l-[5px] border-blue-900 transition-all">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="bg-blue-900 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">11:30 - 13:30</span>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">ID: 77</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-blue-900">高松城 (玉藻公園)</h2>
+                    </div>
+                    <label class="flex flex-col items-center">
+                        <input type="checkbox" onchange="toggleVisited(77)" class="w-6 h-6 rounded-md">
+                        <span class="text-[10px] mt-1 text-gray-400 font-bold">STAMP</span>
+                    </label>
+                </div>
+                <p class="text-xs leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 日本三大海城の一つ。堀に海水が引き込まれており、潮の干満で水位が変化。鞘橋や現存櫓が見所です。</p>
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <a href="https://www.google.com/maps/search/?api=1&query=玉藻公園東駐車場" target="_blank" class="flex items-center justify-center gap-2 bg-gray-50 p-2 rounded text-[11px] border">🅿️ 駐車場</a>
+                    <a href="https://www.google.com/maps/search/?api=1&query=高松城管理事務所" target="_blank" class="flex items-center justify-center gap-2 bg-gray-50 p-2 rounded text-[11px] border">📍 スタンプ場所</a>
+                </div>
+                <div class="text-[11px] space-y-1">
+                    <p>🕒 <strong>営業時間：</strong> 8:30 - 17:00 (2月)</p>
+                    <p class="text-indigo-700">💡 留意点：堀の魚（鯛）にエサをあげる「鯛願成就」が名物。</p>
+                </div>
+            </section>
+
+            <section id="castle-177" class="castle-card bg-white rounded-lg shadow-md p-5 border-l-[5px] border-blue-900 transition-all">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="bg-blue-900 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">15:00 - 16:30</span>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">ID: 177</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-blue-900">引田城</h2>
+                    </div>
+                    <label class="flex flex-col items-center">
+                        <input type="checkbox" onchange="toggleVisited(177)" class="w-6 h-6 rounded-md">
+                        <span class="text-[10px] mt-1 text-gray-400 font-bold">STAMP</span>
+                    </label>
+                </div>
+                <p class="text-xs leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 戦国末期の山城遺構。瀬戸内海の要衝を見下ろす位置にあり、古い野面積みの石垣が今も残っています。</p>
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <a href="https://www.google.com/maps/search/?api=1&query=田ノ浦野営場駐車場" target="_blank" class="flex items-center justify-center gap-2 bg-gray-50 p-2 rounded text-[11px] border">🅿️ 駐車場</a>
+                    <a href="https://www.google.com/maps/search/?api=1&query=讃州井筒屋敷" target="_blank" class="flex items-center justify-center gap-2 bg-gray-50 p-2 rounded text-[11px] border">📍 スタンプ場所</a>
+                </div>
+                <div class="text-[11px] space-y-1">
+                    <p>🕒 <strong>営業時間：</strong> 讃州井筒屋敷 10:00 - 16:00</p>
+                    <p class="text-indigo-700">💡 留意点：城跡とスタンプ場所は離れています。屋敷の閉館時間に注意。</p>
+                </div>
+            </section>
+        </div>
+
+        <!-- DAY 3: 徳島・淡路エリア (2/26) -->
+        <div id="day3" class="tab-content space-y-6">
+            <section id="castle-175" class="castle-card bg-white rounded-lg shadow-md p-5 border-l-[5px] border-blue-900 transition-all">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="bg-blue-900 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">09:00 - 10:00</span>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">ID: 175</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-blue-900">勝瑞城</h2>
+                    </div>
+                    <label class="flex flex-col items-center">
+                        <input type="checkbox" onchange="toggleVisited(175)" class="w-6 h-6 rounded-md">
+                        <span class="text-[10px] mt-1 text-gray-400 font-bold">STAMP</span>
+                    </label>
+                </div>
+                <p class="text-xs leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 阿波を制した三好氏の本拠地。豪華な庭園を持つ居館跡の遺構が良好な状態で発見されています。</p>
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <a href="https://www.google.com/maps/search/?api=1&query=勝瑞城館跡駐車場" target="_blank" class="flex items-center justify-center gap-2 bg-gray-50 p-2 rounded text-[11px] border">🅿️ 駐車場</a>
+                    <a href="https://www.google.com/maps/search/?api=1&query=勝瑞現場事務所" target="_blank" class="flex items-center justify-center gap-2 bg-gray-50 p-2 rounded text-[11px] border">📍 スタンプ場所</a>
+                </div>
+                <div class="text-[11px] space-y-1 italic text-indigo-700">
+                    💡 公園内は広く、居館跡と城跡が点在しています。
+                </div>
+            </section>
+
+            <section id="castle-76" class="castle-card bg-white rounded-lg shadow-md p-5 border-l-[5px] border-blue-900 transition-all">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="bg-blue-900 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">10:30 - 12:30</span>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">ID: 76</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-blue-900">徳島城</h2>
+                    </div>
+                    <label class="flex flex-col items-center">
+                        <input type="checkbox" onchange="toggleVisited(76)" class="w-6 h-6 rounded-md">
+                        <span class="text-[10px] mt-1 text-gray-400 font-bold">STAMP</span>
+                    </label>
+                </div>
+                <p class="text-xs leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 蜂須賀氏14代の居城。徳島市街の中心にあり、「青石」を使った石垣や表御殿庭園が見所です。</p>
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <a href="https://www.google.com/maps/search/?api=1&query=徳島中央公園駐車場" target="_blank" class="flex items-center justify-center gap-2 bg-gray-50 p-2 rounded text-[11px] border">🅿️ 駐車場</a>
+                    <a href="https://www.google.com/maps/search/?api=1&query=徳島市立徳島城博物館" target="_blank" class="flex items-center justify-center gap-2 bg-gray-50 p-2 rounded text-[11px] border">📍 スタンプ場所</a>
+                </div>
+                <div class="text-[11px] space-y-1">
+                    🕒 博物館：9:30 - 17:00
+                </div>
+            </section>
+
+            <section id="castle-176" class="castle-card bg-white rounded-lg shadow-md p-5 border-l-[5px] border-blue-900 transition-all">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="bg-blue-900 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">14:00 - 15:30</span>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">ID: 176</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-blue-900">一宮城</h2>
+                    </div>
+                    <label class="flex flex-col items-center">
+                        <input type="checkbox" onchange="toggleVisited(176)" class="w-6 h-6 rounded-md">
+                        <span class="text-[10px] mt-1 text-gray-400 font-bold">STAMP</span>
+                    </label>
+                </div>
+                <p class="text-xs leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 岩盤を削った堀切が見事な山城。一宮神社の背後に広がる遺構は見応え抜群です。</p>
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <a href="https://www.google.com/maps/search/?api=1&query=一宮神社駐車場+徳島" target="_blank" class="flex items-center justify-center gap-2 bg-gray-50 p-2 rounded text-[11px] border">🅿️ 駐車場</a>
+                    <a href="https://www.google.com/maps/search/?api=1&query=一宮城跡登山口+スタンプ" target="_blank" class="flex items-center justify-center gap-2 bg-gray-50 p-2 rounded text-[11px] border">📍 スタンプ場所</a>
+                </div>
+                <div class="text-[11px] italic text-indigo-700 font-bold">
+                    💡 スタンプは登山口の箱（24時間対応）にあります。
+                </div>
+            </section>
+
+            <section id="castle-164" class="castle-card bg-white rounded-lg shadow-md p-5 border-l-[5px] border-blue-900 transition-all">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="bg-blue-900 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">17:00 - 18:00</span>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">ID: 164</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-blue-900">洲本城</h2>
+                    </div>
+                    <label class="flex flex-col items-center">
+                        <input type="checkbox" onchange="toggleVisited(164)" class="w-6 h-6 rounded-md">
+                        <span class="text-[10px] mt-1 text-gray-400 font-bold">STAMP</span>
+                    </label>
+                </div>
+                <p class="text-xs leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 淡路島最大の要塞。「登り石垣」が残り、天守台からの紀淡海峡の眺望は絶景です。</p>
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <a href="https://www.google.com/maps/search/?api=1&query=洲本城跡駐車場" target="_blank" class="flex items-center justify-center gap-2 bg-gray-50 p-2 rounded text-[11px] border">🅿️ 駐車場</a>
+                    <a href="https://www.google.com/maps/search/?api=1&query=淡路文化史料館" target="_blank" class="flex items-center justify-center gap-2 bg-gray-50 p-2 rounded text-[11px] border">📍 スタンプ場所</a>
+                </div>
+                <div class="text-[11px] text-red-700 font-bold">
+                    💡 先に麓の「史料館」でスタンプを押してから、車で山頂へ登るのがベスト。
+                </div>
+            </section>
+        </div>
+
+        <!-- DAY 4: 兵庫・岡山エリア (2/27) -->
+        <div id="day4" class="tab-content space-y-6">
+            <section id="castle-58" class="castle-card bg-white rounded-lg shadow-md p-5 border-l-[5px] border-blue-900 transition-all">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="bg-blue-900 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">09:00 - 10:15</span>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">ID: 58</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-blue-900">明石城</h2>
+                    </div>
+                    <label class="flex flex-col items-center">
+                        <input type="checkbox" onchange="toggleVisited(58)" class="w-6 h-6 rounded-md">
+                        <span class="text-[10px] mt-1 text-gray-400 font-bold">STAMP</span>
+                    </label>
+                </div>
+                <p class="text-xs leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 巨大な2基の三重櫓が現存。天守に代わる象徴として築かれました。</p>
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <a href="https://www.google.com/maps/search/?api=1&query=明石公園駐車場" target="_blank" class="flex items-center justify-center gap-2 bg-gray-50 p-2 rounded text-[11px] border">🅿️ 駐車場</a>
+                    <a href="https://www.google.com/maps/search/?api=1&query=明石公園サービスセンター" target="_blank" class="flex items-center justify-center gap-2 bg-gray-50 p-2 rounded text-[11px] border">📍 スタンプ場所</a>
+                </div>
+            </section>
+
+            <section id="castle-59" class="castle-card bg-white rounded-lg shadow-md p-5 border-l-[5px] border-blue-900 transition-all">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="bg-blue-900 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">11:15 - 14:15</span>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">ID: 59</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-blue-900">姫路城</h2>
+                    </div>
+                    <label class="flex flex-col items-center">
+                        <input type="checkbox" onchange="toggleVisited(59)" class="w-6 h-6 rounded-md">
+                        <span class="text-[10px] mt-1 text-gray-400 font-bold">STAMP</span>
+                    </label>
+                </div>
+                <p class="text-xs leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 世界遺産、国宝。「白鷺城」とも呼ばれる日本最高の城郭建築です。</p>
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <a href="https://www.google.com/maps/search/?api=1&query=姫路城大手門駐車場" target="_blank" class="flex items-center justify-center gap-2 bg-gray-50 p-2 rounded text-[11px] border">🅿️ 駐車場</a>
+                    <a href="https://www.google.com/maps/search/?api=1&query=姫路城管理事務所" target="_blank" class="flex items-center justify-center gap-2 bg-gray-50 p-2 rounded text-[11px] border">📍 スタンプ場所</a>
+                </div>
+                <div class="text-[11px] font-bold text-red-700">
+                    💡 見学に最低2時間は確保。最終日の要です。
+                </div>
+            </section>
+
+            <section id="castle-60" class="castle-card bg-white rounded-lg shadow-md p-5 border-l-[5px] border-blue-900 transition-all">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="bg-blue-900 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">15:15 - 16:30</span>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">ID: 60</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-blue-900">赤穂城</h2>
+                    </div>
+                    <label class="flex flex-col items-center">
+                        <input type="checkbox" onchange="toggleVisited(60)" class="w-6 h-6 rounded-md">
+                        <span class="text-[10px] mt-1 text-gray-400 font-bold">STAMP</span>
+                    </label>
+                </div>
+                <p class="text-xs leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 忠臣蔵の舞台。軍学者・山鹿素行の設計による特殊な石垣構造が特徴。</p>
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <a href="https://www.google.com/maps/search/?api=1&query=赤穂城跡駐車場" target="_blank" class="flex items-center justify-center gap-2 bg-gray-50 p-2 rounded text-[11px] border">🅿️ 駐車場</a>
+                    <a href="https://www.google.com/maps/search/?api=1&query=赤穂城跡本丸門" target="_blank" class="flex items-center justify-center gap-2 bg-gray-50 p-2 rounded text-[11px] border">📍 スタンプ場所</a>
+                </div>
+            </section>
+
+            <section id="castle-70" class="castle-card bg-white rounded-lg shadow-md p-5 border-l-[5px] border-blue-900 transition-all">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="bg-blue-900 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">17:30 - 18:30</span>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">ID: 70</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-blue-900">岡山城 (GOAL)</h2>
+                    </div>
+                    <label class="flex flex-col items-center">
+                        <input type="checkbox" onchange="toggleVisited(70)" class="w-6 h-6 rounded-md">
+                        <span class="text-[10px] mt-1 text-gray-400 font-bold">STAMP</span>
+                    </label>
+                </div>
+                <p class="text-xs leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 「烏城」と呼ばれる漆黒の名城。レンタカー返却前に最終ゴール！</p>
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <a href="https://www.google.com/maps/search/?api=1&query=烏城公園駐車場" target="_blank" class="flex items-center justify-center gap-2 bg-gray-50 p-2 rounded text-[11px] border">🅿️ 駐車場</a>
+                    <a href="https://www.google.com/maps/search/?api=1&query=岡山城管理事務所" target="_blank" class="flex items-center justify-center gap-2 bg-gray-50 p-2 rounded text-[11px] border">📍 スタンプ場所</a>
+                </div>
+                <div class="text-[11px] font-bold text-blue-800">
+                    💡 17:00最終入館に注意。その後、19:00返却へ。
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <footer class="fixed bottom-0 left-0 w-full bg-blue-900 text-white p-3 text-center shadow-inner">
+        <p class="text-[10px] opacity-75 uppercase tracking-widest">© 2026 Castle Tour Navigator - Persistent Progress</p>
+    </footer>
+
+    <script>
+        // Progress Management
+        let visitedData = JSON.parse(localStorage.getItem('castle_progress')) || {};
+
+        function init() {
+            Object.keys(visitedData).forEach(id => {
+                if (visitedData[id]) {
+                    const el = document.querySelector(`#castle-${id}`);
+                    if (el) {
+                        el.classList.add('visited');
+                        el.querySelector('input').checked = true;
+                    }
+                }
+            });
+            updateProgress();
+        }
+
+        function toggleVisited(id) {
+            const card = document.querySelector(`#castle-${id}`);
+            const isChecked = card.querySelector('input').checked;
+            
+            if (isChecked) {
+                card.classList.add('visited');
+                visitedData[id] = true;
+            } else {
+                card.classList.remove('visited');
+                visitedData[id] = false;
+            }
+            
+            localStorage.setItem('castle_progress', JSON.stringify(visitedData));
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const count = Object.values(visitedData).filter(Boolean).length;
+            const total = 14;
+            const percent = (count / total) * 100;
+            
+            document.getElementById('visited-count').textContent = count;
+            document.getElementById('progress-bar').style.width = percent + '%';
+        }
+
+        // Tab Management
+        function showDay(dayId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
+            document.getElementById(dayId).classList.add('active');
+            document.getElementById('btn-' + dayId).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
