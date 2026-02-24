@@ -1,284 +1,323 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>日本100名城・続100名城 4日間スタンプラリーナビ</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .tab-button.active { 
-            background-color: #1e3a8a; 
-            color: white; 
-            border-bottom: 4px solid #fbbf24;
+import React, { useState, useEffect } from 'react';
+import { CheckCircle, MapPin, Clock, Info, CheckCircle2, Circle, Navigation, ExternalLink } from 'lucide-react';
+
+const App = () => {
+  const [activeTab, setActiveTab] = useState('day1');
+  const [visited, setVisited] = useState({});
+
+  // ローカルストレージから進捗を読み込む
+  useEffect(() => {
+    const saved = localStorage.getItem('castle_progress');
+    if (saved) setVisited(JSON.parse(saved));
+  }, []);
+
+  // 進捗を保存
+  const toggleVisit = (id) => {
+    const newVisited = { ...visited, [id]: !visited[id] };
+    setVisited(newVisited);
+    localStorage.getItem('castle_progress');
+    localStorage.setItem('castle_progress', JSON.stringify(newVisited));
+  };
+
+  const schedule = {
+    day1: {
+      date: '2/24 (火)',
+      area: '備中（岡山）',
+      note: '※祝日振替日で資料館が休業。代替スタンプ場所に注意。',
+      castles: [
+        {
+          id: '68',
+          name: '備中松山城',
+          time: '09:00 - 11:30',
+          desc: '日本一高い現存天守。雲海に浮かぶ天空の城として有名。',
+          parking: 'https://www.google.com/maps/search/?api=1&query=城見橋公園駐車場',
+          stamp: 'https://www.google.com/maps/search/?api=1&query=備中松山城+天守',
+          hours: '9:00 - 16:30',
+          warning: '駐車場からバス移動＋徒歩20分の急坂あり。'
+        },
+        {
+          id: '69',
+          name: '鬼ノ城',
+          time: '12:30 - 14:30',
+          desc: '古代朝鮮式山城。巨大な西門とパノラマビューが圧巻。',
+          parking: 'https://www.google.com/maps/search/?api=1&query=鬼ノ城ビジターセンター',
+          stamp: 'https://www.google.com/maps/search/?api=1&query=総社市役所',
+          hours: '城跡自由 (ビジターC休館)',
+          warning: '2/24はビジターC休館。スタンプは総社市役所の守衛室等で確認。'
+        },
+        {
+          id: '171',
+          name: '備中高松城',
+          time: '15:00 - 16:30',
+          desc: '秀吉の「水攻め」の舞台。城主・清水宗治の切腹地。',
+          parking: 'https://www.google.com/maps/search/?api=1&query=備中高松城跡駐車場',
+          stamp: 'https://www.google.com/maps/search/?api=1&query=備中高松城跡+清鏡庵',
+          hours: '城跡自由 (資料館休館)',
+          warning: '資料館休館のため、スタンプは隣接売店「清鏡庵」にて。'
         }
-        .castle-card {
-            border-left: 5px solid #1e3a8a;
+      ]
+    },
+    day2: {
+      date: '2/25 (水)',
+      area: '香川',
+      note: '現存天守2城と瀬戸内の山城を巡る。',
+      castles: [
+        {
+          id: '78',
+          name: '丸亀城',
+          time: '09:00 - 10:30',
+          desc: '日本一高い石垣と現存最小の天守。扇の勾配は見事。',
+          parking: 'https://www.google.com/maps/search/?api=1&query=丸亀城大手門駐車場',
+          stamp: 'https://www.google.com/maps/search/?api=1&query=丸亀城天守',
+          hours: '9:00 - 16:30',
+          warning: '天守への「見返り坂」は非常に急。歩きやすい靴で。'
+        },
+        {
+          id: '77',
+          name: '高松城',
+          time: '11:30 - 13:30',
+          desc: '日本三大海城。堀に海水が入り、鯛が泳いでいる。',
+          parking: 'https://www.google.com/maps/search/?api=1&query=玉藻公園東駐車場',
+          stamp: 'https://www.google.com/maps/search/?api=1&query=高松城管理事務所',
+          hours: '8:30 - 17:00',
+          warning: '「鯛願成就」のエサやり体験がおすすめ。'
+        },
+        {
+          id: '177',
+          name: '引田城',
+          time: '15:00 - 16:30',
+          desc: '瀬戸内を一望する石垣の山城。戦国末期の遺構が残る。',
+          parking: 'https://www.google.com/maps/search/?api=1&query=田ノ浦野営場駐車場',
+          stamp: 'https://www.google.com/maps/search/?api=1&query=讃州井筒屋敷',
+          hours: '10:00 - 16:00 (井筒屋敷)',
+          warning: 'スタンプ場所と城跡は離れています。屋敷の閉館に注意。'
         }
-    </style>
-</head>
-<body class="bg-gray-50 text-gray-800 font-sans">
-
-    <!-- Header -->
-    <header class="bg-blue-900 text-white p-6 shadow-lg sticky top-0 z-50">
-        <div class="max-w-5xl mx-auto flex justify-between items-end">
-            <div>
-                <h1 class="text-2xl font-bold">🏯 名城スタンプラリー・ナビゲーター</h1>
-                <p class="text-sm text-blue-200 mt-1">2/24(火) 〜 2/27(金) 岡山発着・反時計回りコース</p>
-            </div>
-            <div class="text-right hidden sm:block">
-                <span class="bg-yellow-500 text-blue-900 text-xs font-black px-2 py-1 rounded">全14城 走破プラン</span>
-            </div>
-        </div>
-    </header>
-
-    <!-- Tab Navigation -->
-    <nav class="bg-white border-b sticky top-[80px] z-40 shadow-sm">
-        <div class="max-w-5xl mx-auto flex">
-            <button onclick="showDay('day1')" id="btn-day1" class="tab-button active flex-1 py-4 text-center font-bold text-sm border-r">1日目<br>2/24(火)</button>
-            <button onclick="showDay('day2')" id="btn-day2" class="tab-button flex-1 py-4 text-center font-bold text-sm border-r">2日目<br>2/25(水)</button>
-            <button onclick="showDay('day3')" id="btn-day3" class="tab-button flex-1 py-4 text-center font-bold text-sm border-r">3日目<br>2/26(木)</button>
-            <button onclick="showDay('day4')" id="btn-day4" class="tab-button flex-1 py-4 text-center font-bold text-sm">4日目<br>2/27(金)</button>
-        </div>
-    </nav>
-
-    <main class="max-w-5xl mx-auto p-4 space-y-8 pb-24">
-
-        <!-- DAY 1: 備中エリア (2/24) -->
-        <div id="day1" class="tab-content active space-y-6">
-            <div class="bg-red-50 p-4 rounded-lg border border-red-200 text-red-800 text-sm italic">
-                <strong>【2/24 留意事項】</strong> 月曜祝日の振替で資料館が休館します。スタンプは代替場所（市役所や売店）を利用してください。
-            </div>
-
-            <!-- 備中松山城 -->
-            <section class="bg-white rounded-lg shadow-md p-5 castle-card">
-                <div class="flex justify-between items-start mb-3">
-                    <h2 class="text-xl font-bold text-blue-900">68. 備中松山城</h2>
-                    <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">100名城</span>
-                </div>
-                <p class="text-sm leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 標高430mの臥牛山頂に位置する、現存12天守の中で唯一の山城。秋から冬にかけての早朝には雲海に浮かぶ姿が見られることから「天空の城」とも称されます。</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                    <a href="https://www.google.com/maps/search/?api=1&query=城見橋公園駐車場" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 p-3 rounded text-sm hover:bg-gray-200 transition">🅿️ 駐車場 (城見橋公園)</a>
-                    <a href="https://www.google.com/maps/search/?api=1&query=備中松山城+天守" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 p-3 rounded text-sm hover:bg-gray-200 transition">📍 スタンプ (天守受付)</a>
-                </div>
-                <div class="text-xs space-y-1">
-                    <p><strong>🕒 営業時間：</strong> 9:00 - 16:30 (最終入館16:00)</p>
-                    <p class="text-indigo-700 font-bold">💡 留意点：駐車場からシャトルバスで8合目へ。そこから徒歩20分以上の急坂を登ります。動きやすい服装必須。</p>
-                </div>
-            </section>
-
-            <!-- 備中高松城 -->
-            <section class="bg-white rounded-lg shadow-md p-5 castle-card">
-                <h2 class="text-xl font-bold text-blue-900 mb-3">171. 備中高松城</h2>
-                <p class="text-sm leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 豊臣秀吉の「水攻め」で名高い城。城主・清水宗治が兵の命を救うため、舟の上で切腹した潔い最期は戦国史上有名なエピソードです。現在は公園として整備されています。</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                    <a href="https://www.google.com/maps/search/?api=1&query=備中高松城跡駐車場" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 p-3 rounded text-sm">🅿️ 駐車場 (公園入口)</a>
-                    <a href="https://www.google.com/maps/search/?api=1&query=備中高松城跡+清鏡庵" target="_blank" class="flex items-center justify-center gap-2 bg-red-50 p-3 rounded text-sm border border-red-200 font-bold text-red-700 italic">📍 スタンプ (売店：清鏡庵)</a>
-                </div>
-                <div class="text-xs space-y-1">
-                    <p><strong>🕒 営業時間：</strong> 城跡自由 (売店 10:00 - 16:00頃)</p>
-                    <p class="text-red-700 font-bold">💡 留意点：2/24は資料館休館のため、スタンプは隣接の売店「清鏡庵」で提供されています。</p>
-                </div>
-            </section>
-
-            <!-- 鬼ノ城 -->
-            <section class="bg-white rounded-lg shadow-md p-5 castle-card">
-                <h2 class="text-xl font-bold text-blue-900 mb-3">69. 鬼ノ城</h2>
-                <p class="text-sm leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 7世紀頃の古代朝鮮式山城。桃太郎伝説のモデルとされる温羅（うら）が住んでいた「鬼の城」と伝わります。復元された西門からのパノラマは圧巻です。</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                    <a href="https://www.google.com/maps/search/?api=1&query=鬼ノ城ビジターセンター" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 p-3 rounded text-sm">🅿️ 駐車場 (ビジターC)</a>
-                    <a href="https://www.google.com/maps/search/?api=1&query=総社市役所" target="_blank" class="flex items-center justify-center gap-2 bg-red-50 p-3 rounded text-sm border border-red-200 font-bold text-red-700 italic">📍 スタンプ (総社市役所)</a>
-                </div>
-                <div class="text-xs space-y-1">
-                    <p><strong>🕒 営業時間：</strong> 城跡自由 (ビジターC 9:00 - 17:00)</p>
-                    <p class="text-red-700 font-bold">💡 留意点：2/24はビジターC休館のため、総社市役所（守衛室）が公式のスタンプ保管場所になります。必ず登城前に市街地で押印を。</p>
-                </div>
-            </section>
-        </div>
-
-        <!-- DAY 2: 香川エリア (2/25) -->
-        <div id="day2" class="tab-content space-y-6">
-            <!-- 丸亀城 -->
-            <section class="bg-white rounded-lg shadow-md p-5 castle-card">
-                <h2 class="text-xl font-bold text-blue-900 mb-3">78. 丸亀城</h2>
-                <p class="text-sm leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 日本一高いといわれる石垣（総高60m）を持つ城。天守は現存12天守の一つで、全国で最も小規模ながら、扇の勾配と呼ばれる美しい曲線を持つ石垣との対比が見事です。</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                    <a href="https://www.google.com/maps/search/?api=1&query=丸亀城大手門駐車場" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 p-3 rounded text-sm">🅿️ 駐車場 (大手門側)</a>
-                    <a href="https://www.google.com/maps/search/?api=1&query=丸亀城天守" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 p-3 rounded text-sm">📍 スタンプ (天守内)</a>
-                </div>
-                <div class="text-xs space-y-1">
-                    <p><strong>🕒 営業時間：</strong> 9:00 - 16:30 (天守入館)</p>
-                    <p class="text-indigo-700 font-bold">💡 留意点：駐車場から天守まではかなりの急坂「見返り坂」を登ります。滑りやすい靴に注意。</p>
-                </div>
-            </section>
-
-            <!-- 高松城 -->
-            <section class="bg-white rounded-lg shadow-md p-5 castle-card">
-                <h2 class="text-xl font-bold text-blue-900 mb-3">77. 高松城 (玉藻公園)</h2>
-                <p class="text-sm leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 日本三大海城の一つ。堀に海水が引き込まれており、潮の干満による水位の変化が見られます。天守は現存しませんが、鞘橋や複数の現存櫓、近年復元された天守台が見所です。</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                    <a href="https://www.google.com/maps/search/?api=1&query=玉藻公園東駐車場" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 p-3 rounded text-sm">🅿️ 駐車場 (東入口)</a>
-                    <a href="https://www.google.com/maps/search/?api=1&query=高松城管理事務所+玉藻公園" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 p-3 rounded text-sm">📍 スタンプ (受付窓口)</a>
-                </div>
-                <div class="text-xs space-y-1">
-                    <p><strong>🕒 営業時間：</strong> 8:30 - 17:00 (2月)</p>
-                    <p class="text-indigo-700 font-bold">💡 留意点：堀の魚（真鯛）にエサをあげる「鯛願成就」は名物ですのでぜひ体験を。</p>
-                </div>
-            </section>
-
-            <!-- 引田城 -->
-            <section class="bg-white rounded-xl shadow-md p-5 castle-card">
-                <h2 class="text-xl font-bold text-blue-900 mb-3">177. 引田城</h2>
-                <p class="text-sm leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 豊臣秀吉の四国制圧後に築かれた戦国末期の山城。瀬戸内海の交通の要衝である引田港を望む山の上にあり、初期の野面積みの石垣が今も残る貴重な遺構です。</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                    <a href="https://www.google.com/maps/search/?api=1&query=田ノ浦野営場駐車場+引田" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 p-3 rounded text-sm">🅿️ 駐車場 (田ノ浦キャンプ場)</a>
-                    <a href="https://www.google.com/maps/search/?api=1&query=讃州井筒屋敷" target="_blank" class="flex items-center justify-center gap-2 bg-indigo-50 p-3 rounded text-sm border border-indigo-200 font-bold text-indigo-700">📍 スタンプ (讃州井筒屋敷)</a>
-                </div>
-                <div class="text-xs space-y-1">
-                    <p><strong>🕒 営業時間：</strong> 讃州井筒屋敷 10:00 - 16:00</p>
-                    <p class="text-indigo-700 font-bold">💡 留意点：城跡とスタンプ場所（井筒屋敷）は車で5分ほど離れています。屋敷の閉館時間に注意してください。</p>
-                </div>
-            </section>
-        </div>
-
-        <!-- DAY 3: 徳島・淡路エリア (2/26) -->
-        <div id="day3" class="tab-content space-y-6">
-            <!-- 勝瑞城 -->
-            <section class="bg-white rounded-lg shadow-md p-5 castle-card">
-                <h2 class="text-xl font-bold text-blue-900 mb-3">175. 勝瑞城</h2>
-                <p class="text-sm leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 戦国時代、四国を制した三好氏の本拠地。豪華な庭園を持つ居館跡の遺構が見つかっており、当時の栄華を物語っています。織田信長以前に畿内を席巻した「三好王朝」の中心地です。</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                    <a href="https://www.google.com/maps/search/?api=1&query=勝瑞城館跡駐車場" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 p-3 rounded text-sm">🅿️ 駐車場 (城跡付近)</a>
-                    <a href="https://www.google.com/maps/search/?api=1&query=勝瑞現場事務所" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 p-3 rounded text-sm font-bold">📍 スタンプ (現場事務所)</a>
-                </div>
-                <div class="text-xs space-y-1">
-                    <p><strong>🕒 営業時間：</strong> 9:00 - 17:00 (事務所)</p>
-                    <p class="text-indigo-700 font-bold">💡 留意点：公園として整備されている部分は広いですが、城跡自体は住宅地の中に点在しています。</p>
-                </div>
-            </section>
-
-            <!-- 徳島城 -->
-            <section class="bg-white rounded-lg shadow-md p-5 castle-card">
-                <h2 class="text-xl font-bold text-blue-900 mb-3">76. 徳島城</h2>
-                <p class="text-sm leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 阿波25万石・蜂須賀家14代の居城。徳島市街の中心に位置し、四国に多い「緑色片岩（青石）」を贅沢に使った石垣や、国内最大規模の表御殿庭園が見所です。</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                    <a href="https://www.google.com/maps/search/?api=1&query=徳島中央公園駐車場" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 p-3 rounded text-sm">🅿️ 駐車場 (中央公園内)</a>
-                    <a href="https://www.google.com/maps/search/?api=1&query=徳島市立徳島城博物館" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 p-3 rounded text-sm">📍 スタンプ (博物館受付)</a>
-                </div>
-                <div class="text-xs space-y-1">
-                    <p><strong>🕒 営業時間：</strong> 9:30 - 17:00 (博物館)</p>
-                    <p class="text-indigo-700 font-bold">💡 留意点：駐車場から博物館までは徒歩ですぐです。石垣は山全体に残っており、散策には時間がかかります。</p>
-                </div>
-            </section>
-
-            <!-- 一宮城 -->
-            <section class="bg-white rounded-lg shadow-md p-5 castle-card">
-                <h2 class="text-xl font-bold text-blue-900 mb-3">176. 一宮城</h2>
-                <p class="text-sm leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 標高144mの一宮山に築かれた難攻不落の山城。岩盤を削って作られた堀切や、見事な石垣の遺構が良好な状態で残っています。蜂須賀家入国当初は徳島城の支城として重要視されました。</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                    <a href="https://www.google.com/maps/search/?api=1&query=一宮神社駐車場+徳島市" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 p-3 rounded text-sm">🅿️ 駐車場 (一宮神社)</a>
-                    <a href="https://www.google.com/maps/search/?api=1&query=一宮城跡登山口+スタンプ" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 p-3 rounded text-sm">📍 スタンプ (登山口の箱)</a>
-                </div>
-                <div class="text-xs space-y-1">
-                    <p><strong>🕒 営業時間：</strong> 城跡自由</p>
-                    <p class="text-indigo-700 font-bold">💡 留意点：スタンプは登山口（看板横）の郵便受けの中に設置されており、24時間押印可能です。</p>
-                </div>
-            </section>
-
-            <!-- 洲本城 -->
-            <section class="bg-white rounded-lg shadow-md p-5 castle-card">
-                <h2 class="text-xl font-bold text-blue-900 mb-3">164. 洲本城</h2>
-                <p class="text-sm leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 淡路島最大級の城郭。標高133mの三熊山山頂にあり、四国勢力に対する防御拠点でした。全国的にも珍しい「登り石垣」が現存しており、石垣ファン必見の名城です。</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                    <a href="https://www.google.com/maps/search/?api=1&query=洲本城跡駐車場" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 p-3 rounded text-sm">🅿️ 駐車場 (山頂付近)</a>
-                    <a href="https://www.google.com/maps/search/?api=1&query=淡路文化史料館" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 p-3 rounded text-sm font-bold">📍 スタンプ (山の下：史料館)</a>
-                </div>
-                <div class="text-xs space-y-1">
-                    <p><strong>🕒 営業時間：</strong> 史料館 9:00 - 17:00</p>
-                    <p class="text-red-700 font-bold">💡 留意点：スタンプは山の下の「淡路文化史料館」にあります。先に市街地でスタンプを押してから山に登るのが効率的です。</p>
-                </div>
-            </section>
-        </div>
-
-        <!-- DAY 4: 兵庫・岡山エリア (2/27) -->
-        <div id="day4" class="tab-content space-y-6">
-            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200 text-blue-800 text-sm">
-                <strong>最終日：岡山駅 19:00返却</strong><br>
-                最後の岡山城は駅に近いため、時間を見ながら調整してください。
-            </div>
-
-            <!-- 明石城 -->
-            <section class="bg-white rounded-lg shadow-md p-5 castle-card">
-                <h2 class="text-xl font-bold text-blue-900 mb-3">58. 明石城</h2>
-                <p class="text-sm leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 徳川秀忠の命により築かれた平山城。天守台はあるものの天守は建てられず、代わりに三重櫓が四隅に置かれました。現在も2基の三重櫓が現存し、白塗りの壁が美しく映えます。</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                    <a href="https://www.google.com/maps/search/?api=1&query=明石公園駐車場" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 p-3 rounded text-sm">🅿️ 駐車場 (公園入口)</a>
-                    <a href="https://www.google.com/maps/search/?api=1&query=明石公園サービスセンター" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 p-3 rounded text-sm">📍 スタンプ (サービスC窓口)</a>
-                </div>
-                <div class="text-xs space-y-1">
-                    <p><strong>🕒 営業時間：</strong> 8:45 - 17:00 (サービスC)</p>
-                    <p class="text-indigo-700 font-bold">💡 留意点：スタンプは公園内の管理事務所にあります。明石駅から徒歩圏内でもあります。</p>
-                </div>
-            </section>
-
-            <!-- 姫路城 -->
-            <section class="bg-white rounded-lg shadow-md p-5 castle-card">
-                <h2 class="text-xl font-bold text-blue-900 mb-3">59. 姫路城</h2>
-                <p class="text-sm leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 世界遺産、日本最初の国宝。白漆喰で塗られた壁の美しさから「白鷺城」の愛称で親しまれています。5重6階の大天守と3つの小天守が渡り櫓で結ばれた連立式天守は圧巻です。</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                    <a href="https://www.google.com/maps/search/?api=1&query=姫路城大手門駐車場" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 p-3 rounded text-sm">🅿️ 駐車場 (大手門側)</a>
-                    <a href="https://www.google.com/maps/search/?api=1&query=姫路城管理事務所+入城口" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 p-3 rounded text-sm font-bold">📍 スタンプ (入城口管理事務所)</a>
-                </div>
-                <div class="text-xs space-y-1">
-                    <p><strong>🕒 営業時間：</strong> 9:00 - 17:00 (最終入城16:00)</p>
-                    <p class="text-red-700 font-bold">💡 留意点：規模が非常に大きいため、見学だけで2時間は見ておく必要があります。早めの移動を心がけてください。</p>
-                </div>
-            </section>
-
-            <!-- 赤穂城 -->
-            <section class="bg-white rounded-lg shadow-md p-5 castle-card">
-                <h2 class="text-xl font-bold text-blue-900 mb-3">60. 赤穂城</h2>
-                <p class="text-sm leading-relaxed mb-4 text-gray-700"><strong>説明：</strong> 忠臣蔵の舞台。軍学者・山鹿素行の指導により築かれたという変形輪郭式の平城です。本丸・二の丸は石垣と堀で囲まれ、近世城郭の集大成ともいえる技巧的な設計が特徴です。</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                    <a href="https://www.google.com/maps/search/?api=1&query=赤穂城跡駐車場" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 p-3 rounded text-sm">🅿️ 駐車場 (城跡入口)</a>
-                    <a href="https://www.google.com/maps/search/?api=1&query=赤穂城跡本丸門+スタンプ" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 p-3 rounded text-sm font-bold">📍 スタンプ (本丸門付近)</a>
-                </div>
-                <div class="text-xs space-y-1">
-                    <p><strong>🕒 営業時間：</strong> 本丸 9:00 - 16:30</p>
-                    <p class="text-indigo-700 font-bold">💡 留意点：本丸庭園など見所が多いですが、時間が迫っている場合は本丸門下のスタンプを優先してください。</p>
-                </div>
-            </section>
-
-            <!-- 岡山城 -->
-            <section class="bg-indigo-900 text-white rounded-lg shadow-xl p-6 ring-4 ring-indigo-100">
-                <h2 class="text-xl font-bold text-yellow-400 mb-3">70. 岡山城 (最終ゴール)</h2>
-                <p class="text-sm leading-relaxed mb-4 text-indigo-100"><strong>説明：</strong> 宇喜多秀家により築かれた黒漆喰の外壁が特徴的な城。その外観から「烏城（うじょう）」と呼ばれます。旭川の流れを堀として利用した、不等辺五角形の特徴的な天守台が見所です。</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                    <a href="https://www.google.com/maps/search/?api=1&query=烏城公園駐車場" target="_blank" class="flex items-center justify-center gap-2 bg-indigo-800 p-3 rounded text-sm border border-indigo-700">🅿️ 駐車場 (烏城公園)</a>
-                    <a href="https://www.google.com/maps/search/?api=1&query=岡山城管理事務所+スタンプ" target="_blank" class="flex items-center justify-center gap-2 bg-yellow-500 text-blue-900 p-3 rounded text-sm font-black shadow-lg">📍 スタンプ (城内入口受付)</a>
-                </div>
-                <div class="text-xs space-y-1">
-                    <p><strong>🕒 営業時間：</strong> 9:00 - 17:30 (最終入館17:00)</p>
-                    <p class="text-yellow-200 font-bold">💡 最終チェック：17:00の最終入館までにスタンプを。その後給油し、19:00までにレンタカー返却です！</p>
-                </div>
-            </section>
-        </div>
-
-    </main>
-
-    <footer class="fixed bottom-0 left-0 w-full bg-blue-900 text-white p-4 text-center shadow-inner">
-        <p class="text-[10px] opacity-75">Castle Stamp Rally - 4 Days Efficient Plan (Okayama Start/Goal)</p>
-    </footer>
-
-    <script>
-        function showDay(dayId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
-            document.getElementById(dayId).classList.add('active');
-            document.getElementById('btn-' + dayId).classList.add('active');
-            window.scrollTo(0,0);
+      ]
+    },
+    day3: {
+      date: '2/26 (木)',
+      area: '徳島・淡路',
+      note: '阿波三好氏の拠点と淡路の要衝を攻略。',
+      castles: [
+        {
+          id: '175',
+          name: '勝瑞城',
+          time: '09:00 - 10:00',
+          desc: '三好氏の本拠地。豪華な居館庭園跡が最大の見所。',
+          parking: 'https://www.google.com/maps/search/?api=1&query=勝瑞城館跡駐車場',
+          stamp: 'https://www.google.com/maps/search/?api=1&query=勝瑞現場事務所',
+          hours: '9:00 - 17:00',
+          warning: '城館跡と城跡が分かれているのでセットで回ろう。'
+        },
+        {
+          id: '76',
+          name: '徳島城',
+          time: '10:30 - 12:30',
+          desc: '阿波蜂須賀氏の巨城。珍しい「青石」の石垣が見事。',
+          parking: 'https://www.google.com/maps/search/?api=1&query=徳島中央公園駐車場',
+          stamp: 'https://www.google.com/maps/search/?api=1&query=徳島市立徳島城博物館',
+          hours: '9:30 - 17:00',
+          warning: '博物館内の庭園も必見。駐車場から少し歩きます。'
+        },
+        {
+          id: '176',
+          name: '一宮城',
+          time: '14:00 - 15:30',
+          desc: '岩盤堀切が見事な山城。徳島城以前の重要拠点。',
+          parking: 'https://www.google.com/maps/search/?api=1&query=一宮神社駐車場',
+          stamp: 'https://www.google.com/maps/search/?api=1&query=一宮城跡登山口',
+          hours: '城跡自由',
+          warning: 'スタンプは登山口の案内板横にあるポストの中です。'
+        },
+        {
+          id: '164',
+          name: '洲本城',
+          time: '17:00 - 18:00',
+          desc: '淡路島最大の城。「登り石垣」の遺構は極めて貴重。',
+          parking: 'https://www.google.com/maps/search/?api=1&query=洲本城跡駐車場',
+          stamp: 'https://www.google.com/maps/search/?api=1&query=淡路文化史料館',
+          hours: '9:00 - 17:00 (史料館)',
+          warning: 'スタンプは麓の史料館。先に押してから山頂へ登るのが鉄則。'
         }
-    </script>
-</body>
-</html>
+      ]
+    },
+    day4: {
+      date: '2/27 (金)',
+      area: '兵庫・岡山',
+      note: '最終日。姫路城をメインに据えた帰還ルート。',
+      castles: [
+        {
+          id: '58',
+          name: '明石城',
+          time: '09:00 - 10:15',
+          desc: '巨大な2基の三重櫓が現存。天守に匹敵する迫力。',
+          parking: 'https://www.google.com/maps/search/?api=1&query=明石公園駐車場',
+          stamp: 'https://www.google.com/maps/search/?api=1&query=明石公園サービスセンター',
+          hours: '8:45 - 17:00',
+          warning: '本丸からの眺望は明石海峡大橋まで見渡せます。'
+        },
+        {
+          id: '59',
+          name: '姫路城',
+          time: '11:15 - 14:15',
+          desc: '世界遺産・白鷺城。日本が世界に誇る城郭建築の傑作。',
+          parking: 'https://www.google.com/maps/search/?api=1&query=姫路城大手門駐車場',
+          stamp: 'https://www.google.com/maps/search/?api=1&query=姫路城管理事務所',
+          hours: '9:00 - 17:00',
+          warning: '見学に2時間は必要。混雑時はさらに時間がかかります。'
+        },
+        {
+          id: '60',
+          name: '赤穂城',
+          time: '15:15 - 16:30',
+          desc: '忠臣蔵の舞台。軍学者・山鹿素行による特殊な設計。',
+          parking: 'https://www.google.com/maps/search/?api=1&query=赤穂城跡駐車場',
+          stamp: 'https://www.google.com/maps/search/?api=1&query=赤穂城跡本丸門',
+          hours: '9:00 - 16:30',
+          warning: '本丸庭園の美しさを楽しむなら時間配分に注意。'
+        },
+        {
+          id: '70',
+          name: '岡山城',
+          time: '17:30 - 18:30',
+          desc: '黒漆喰の外壁から「烏城」と呼ばれる名城。',
+          parking: 'https://www.google.com/maps/search/?api=1&query=烏城公園駐車場',
+          stamp: 'https://www.google.com/maps/search/?api=1&query=岡山城管理事務所',
+          hours: '9:00 - 17:30',
+          warning: '17:00最終入館。間に合えばスタンプ・見学し、19:00返却へ。'
+        }
+      ]
+    }
+  };
+
+  const totalCastles = 14;
+  const visitedCount = Object.values(visited).filter(v => v).length;
+  const progressPercent = (visitedCount / totalCastles) * 100;
+
+  return (
+    <div className="min-h-screen bg-slate-100 pb-20">
+      {/* Header */}
+      <header className="bg-indigo-900 text-white p-6 shadow-xl sticky top-0 z-50">
+        <div className="max-w-3xl mx-auto">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-xl font-bold flex items-center gap-2">
+              🏯 城巡りスタンプラリー
+            </h1>
+            <div className="text-right">
+              <span className="text-2xl font-black text-yellow-400">{visitedCount}</span>
+              <span className="text-xs ml-1">/ {totalCastles} 達成</span>
+            </div>
+          </div>
+          {/* Progress Bar */}
+          <div className="w-full bg-indigo-950 rounded-full h-3 border border-indigo-800 overflow-hidden shadow-inner">
+            <div 
+              className="bg-yellow-400 h-full transition-all duration-500 ease-out" 
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+        </div>
+      </header>
+
+      {/* Tabs */}
+      <div className="bg-white shadow-sm sticky top-[108px] z-40">
+        <div className="max-w-3xl mx-auto flex">
+          {Object.keys(schedule).map((day) => (
+            <button
+              key={day}
+              onClick={() => setActiveTab(day)}
+              className={`flex-1 py-4 text-center text-xs font-bold border-b-4 transition-colors
+                ${activeTab === day ? 'border-yellow-400 text-indigo-900 bg-yellow-50/50' : 'border-transparent text-slate-400'}`}
+            >
+              {schedule[day].date.split(' ')[0]}<br/>{schedule[day].area}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Content */}
+      <main className="max-w-3xl mx-auto p-4 space-y-6 mt-4">
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Schedule Summary</p>
+          <h2 className="text-lg font-bold text-indigo-900 mb-1">{schedule[activeTab].date}</h2>
+          <p className="text-sm text-slate-600">{schedule[activeTab].note}</p>
+        </div>
+
+        <div className="space-y-4">
+          {schedule[activeTab].castles.map((castle) => (
+            <div 
+              key={castle.id}
+              className={`bg-white rounded-2xl shadow-sm border-2 transition-all 
+                ${visited[castle.id] ? 'border-green-500 bg-green-50/20' : 'border-slate-200'}`}
+            >
+              {/* Card Header with Time Slot */}
+              <div className="p-4 flex justify-between items-center border-b border-slate-100">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${visited[castle.id] ? 'bg-green-500 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                    <Clock size={18} />
+                  </div>
+                  <span className="font-black text-slate-900">{castle.time}</span>
+                </div>
+                <button 
+                  onClick={() => toggleVisit(castle.id)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all
+                    ${visited[castle.id] 
+                      ? 'bg-green-500 text-white shadow-md' 
+                      : 'bg-white border-2 border-slate-200 text-slate-500 hover:border-slate-300'}`}
+                >
+                  {visited[castle.id] ? <CheckCircle2 size={14} /> : <Circle size={14} />}
+                  {visited[castle.id] ? '訪問済み' : 'スタンプ待機'}
+                </button>
+              </div>
+
+              {/* Card Content */}
+              <div className="p-5">
+                <h3 className="text-xl font-bold text-slate-900 mb-2">{castle.name}</h3>
+                <p className="text-sm text-slate-600 mb-4 leading-relaxed">{castle.desc}</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                  <a href={castle.parking} target="_blank" rel="noopener noreferrer" 
+                    className="flex items-center gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100 hover:bg-slate-100 transition">
+                    <MapPin size={16} className="text-red-500" />
+                    <div className="text-left">
+                      <p className="text-[10px] text-slate-500 font-bold uppercase">Parking</p>
+                      <p className="text-xs font-bold text-slate-700">Google Map で開く</p>
+                    </div>
+                    <ExternalLink size={12} className="ml-auto text-slate-300" />
+                  </a>
+                  <a href={castle.stamp} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 bg-indigo-50 p-3 rounded-xl border border-indigo-100 hover:bg-indigo-100 transition">
+                    <Navigation size={16} className="text-indigo-600" />
+                    <div className="text-left">
+                      <p className="text-[10px] text-indigo-500 font-bold uppercase">Stamp Point</p>
+                      <p className="text-xs font-bold text-indigo-900">スタンプ場所へナビ</p>
+                    </div>
+                    <ExternalLink size={12} className="ml-auto text-indigo-300" />
+                  </a>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-xs text-slate-600">
+                    <Clock size={14} />
+                    <span>営業時間: {castle.hours}</span>
+                  </div>
+                  <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 p-3 rounded-lg border border-amber-100">
+                    <Info size={14} className="mt-0.5 shrink-0" />
+                    <span><strong>留意点:</strong> {castle.warning}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </main>
+
+      <footer className="fixed bottom-0 left-0 w-full bg-white border-t p-3 flex justify-center shadow-2xl z-50">
+        <div className="text-[10px] text-slate-400 font-medium">
+          Castle Rally Guide v2.0 • Data Persisted in Browser
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default App;
